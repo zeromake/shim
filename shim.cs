@@ -18,6 +18,24 @@ namespace shim {
 			uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory,
 			[In] ref STARTUPINFO lpStartupInfo, 
 			out PROCESS_INFORMATION lpProcessInformation);
+		// private PROCESS_INFORMATION pi;
+		
+		enum CtrlTypes
+        {
+            CTRL_C_EVENT = 0,
+            CTRL_BREAK_EVENT,
+            CTRL_CLOSE_EVENT,
+            CTRL_LOGOFF_EVENT = 5,
+            CTRL_SHUTDOWN_EVENT
+        }
+
+		private delegate bool HandlerRoutine(CtrlTypes CtrlType);
+
+		[DllImport("kernel32.dll", SetLastError=true)]
+		private static extern bool SetConsoleCtrlHandler(HandlerRoutine Handler, bool Add);
+
+		// [DllImport("kernel32.dll", SetLastError=true)]
+		// private static extern bool GenerateConsoleCtrlEvent(CtrlTypes dwCtrlType, uint dwProcessGroupId);
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
 		struct STARTUPINFO {
@@ -77,6 +95,10 @@ namespace shim {
 			var add_args = Get(config, "args");
 			var curr_dir = Get(config, "dir");
             var environment = Get(config, "environment");
+			var signal = Get(config, "signal");
+
+			var hasSignal = !(string.IsNullOrEmpty(signal) || signal != "true");
+
             string[] envs = environment.Split(new Char[] {';'});
 
 			if(string.IsNullOrEmpty(curr_dir)) {
@@ -103,6 +125,12 @@ namespace shim {
                 System.Environment.SetEnvironmentVariable(k, v);
             }
 
+			// var p = new Program();
+			// HandlerRoutine newDelegate = new HandlerRoutine(p.Handler);
+			if (hasSignal) {
+            	SetConsoleCtrlHandler(null, true);
+			}
+
 			if(!CreateProcess(null, cmd, IntPtr.Zero, IntPtr.Zero,
 				bInheritHandles: true,
 				dwCreationFlags: 0,
@@ -113,7 +141,7 @@ namespace shim {
 
 				return Marshal.GetLastWin32Error();
 			}
-
+			// p.pi = pi;
 			WaitForSingleObject(pi.hProcess, INFINITE);
 
 			uint exit_code = 0;
@@ -125,6 +153,11 @@ namespace shim {
 
 			return (int)exit_code;
 		}
+
+		// private bool Handler(CtrlTypes CtrlType) {
+		// 	GenerateConsoleCtrlEvent(CtrlType, (uint)this.pi.dwProcessId);
+		// 	return true;
+		// }
 
 		static string Serialize(string[] args) {
 			return string.Join(" ", args.Select(a => a.Contains(' ') ? '"' + a + '"' : a));
