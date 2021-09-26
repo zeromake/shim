@@ -23,4 +23,5 @@ If you haven't installed with [Scoop](http://scoop.sh), you can create shims usi
 > this is fork to [scoop/shimexe](https://github.com/lukesampson/shimexe)
 
 - add `dir` field to `.shim` config, change to open pwd
-- add `environment` field to `.shim` config, change parent environment
+- add `environment` field to `.shim` config, change parent environment: `TZ = Pacific/Pitcairn;CHERE_INVOKING=1`
+- add `signal` field signal capture support shim parent process not exit: `signal = true`
