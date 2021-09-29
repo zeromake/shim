@@ -13,8 +13,8 @@ if command -v mcs >/dev/null 2>&1; then
 elif [ -d ${fwRoot} ]; then
     fwdir=`find ${fwRoot} -maxdepth 1 -type d -name 'v*' | sort -r | head -1`
     echo "ms building by ${fwdir}"
-    "${fwdir}/csc" //platform:x86 //nologo //out:shim-x86.exe shim.cs
-    "${fwdir}/csc" //platform:x64 //nologo //out:shim-x86-64.exe shim.cs
+    "${fwdir}/csc" //platform:x86 //optimize //nologo //out:shim-x86.exe shim.cs
+    "${fwdir}/csc" //nowarn:1607 //platform:x64 //optimize //nologo //out:shim-x86-64.exe shim.cs
 fi
 
 ls -lh ./*.exe
