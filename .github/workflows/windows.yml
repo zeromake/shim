@@ -24,8 +24,3 @@ jobs:
       #   shell: bash
       - run: bash ./build.sh
         shell: bash
-      - run: |
-          ls -lh ./shim-*.exe
-          file ./shim-*.exe
-          md5sum ./shim-*.exe
-        shell: bash

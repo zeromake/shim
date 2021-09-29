@@ -17,6 +17,7 @@ elif [ -d ${fwRoot} ]; then
     "${fwdir}/csc" //platform:x64 //nologo //out:shim-x86-64.exe shim.cs
 fi
 
+ls -lh ./*.exe
 file ./*.exe
 md5sum ./*.exe
 
