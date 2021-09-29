@@ -1,0 +1,24 @@
+name: windows
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '4.x'
+        run: |
+          dotnet build -r win-x86 -c Release
+          dotnet build -r win-x64 -c Release
+        shell: powershell
+      - run: |
+          ls -lh ./bin/Release/net4.0/win-x64/shim.exe ./bin/Release/net4.0/win-x86/shim.exe
+          file ./bin/Release/net4.0/win-x64/shim.exe ./bin/Release/net4.0/win-x86/shim.exe
+          md5sum ./bin/Release/net4.0/win-x64/shim.exe ./bin/Release/net4.0/win-x86/shim.exe
+        shell: bash

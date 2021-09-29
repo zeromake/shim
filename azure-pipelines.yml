@@ -1,0 +1,15 @@
+
+trigger:
+- master
+pool:
+  vmImage: windows-latest
+steps:
+- task: UseDotNet@2
+  displayName: 'Install .NET Core SDK'
+  inputs:
+    packageType: 'sdk'
+    version: '4.x'
+- script: dotnet build -r win-x86 -c Release
+  displayName: 'build x86'
+- script: dotnet build -r win-x64 -c Release
+  displayName: 'build x64'
