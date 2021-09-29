@@ -13,12 +13,19 @@ jobs:
       # - uses: actions/setup-dotnet@v1
       #   with:
       #     dotnet-version: '5.x'
+      # - run: |
+      #     dotnet build -r win-x86 -c Release
+      #     dotnet build -r win-x64 -c Release
+      #   shell: powershell
+      # - run: |
+      #     ls -lh ./bin/Release/net4.0/win-x64/shim.exe ./bin/Release/net4.0/win-x86/shim.exe
+      #     file ./bin/Release/net4.0/win-x64/shim.exe ./bin/Release/net4.0/win-x86/shim.exe
+      #     md5sum ./bin/Release/net4.0/win-x64/shim.exe ./bin/Release/net4.0/win-x86/shim.exe
+      #   shell: bash
+      - run: bash ./build.sh
+        shell: bash
       - run: |
-          dotnet build -r win-x86 -c Release
-          dotnet build -r win-x64 -c Release
-        shell: powershell
-      - run: |
-          ls -lh ./bin/Release/net4.0/win-x64/shim.exe ./bin/Release/net4.0/win-x86/shim.exe
-          file ./bin/Release/net4.0/win-x64/shim.exe ./bin/Release/net4.0/win-x86/shim.exe
-          md5sum ./bin/Release/net4.0/win-x64/shim.exe ./bin/Release/net4.0/win-x86/shim.exe
+          ls -lh ./shim-*.exe
+          file ./shim-*.exe
+          md5sum ./shim-*.exe
         shell: bash
