@@ -22,7 +22,7 @@ jobs:
       #     file ./bin/Release/net4.0/win-x64/shim.exe ./bin/Release/net4.0/win-x86/shim.exe
       #     md5sum ./bin/Release/net4.0/win-x64/shim.exe ./bin/Release/net4.0/win-x86/shim.exe
       #   shell: bash
-      - run: bash ./build.sh
+      - run: bash ./build.sh ci
         shell: bash
       - name: Release
         uses: softprops/action-gh-release@v1

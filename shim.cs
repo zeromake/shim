@@ -34,6 +34,9 @@ namespace shim {
         [DllImport("kernel32.dll", SetLastError=true)]
         private static extern bool SetConsoleCtrlHandler(HandlerRoutine Handler, bool Add);
 
+        // 自动注入 git describe --tags 2>/dev/null | cut -c 2-
+        private static string Version = "develop";
+
         // [DllImport("kernel32.dll", SetLastError=true)]
         // private static extern bool GenerateConsoleCtrlEvent(CtrlTypes dwCtrlType, uint dwProcessGroupId);
 
@@ -68,10 +71,10 @@ namespace shim {
         }
 
         [DllImport("kernel32.dll", SetLastError=true)]
-          static extern UInt32 WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
-          const UInt32 INFINITE = 0xFFFFFFFF;
+        static extern UInt32 WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
+        const UInt32 INFINITE = 0xFFFFFFFF;
 
-          [DllImport("kernel32.dll", SetLastError=true)]
+        [DllImport("kernel32.dll", SetLastError=true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool CloseHandle(IntPtr hObject);
 
@@ -88,7 +91,7 @@ namespace shim {
 
             var configPath = Path.Combine(dir, name + ".shim");
             if(!File.Exists(configPath)) {
-                Console.Error.WriteLine("Couldn't find " + Path.GetFileName(configPath) + " in " + dir);
+                Console.Error.WriteLine("version:\t{0}\nmessage:\tCouldn't find {1} in {2}", Version, Path.GetFileName(configPath), dir);
                 return 1;
             }
 
@@ -105,6 +108,27 @@ namespace shim {
                 curr_dir = null;
             }
 
+            if (path.Length > 1) {
+                var start = 0;
+                if (path[start] == '"' || path[start] == '\'') {
+                    start++;
+                }
+                if (path[start] == '$' && path[start+1] == '{') {
+                    var i = path.IndexOf('}');
+                    if (i > start+1) {
+                        var _path = path.Substring(i+1);
+                        var n = path.Substring(start+2, i-start-2);
+                        if (n == "dir") {
+                            var _dir = dir;
+                            if (_path[0] != '\\') {
+                                _dir += '\\';
+                            }
+                            path = path.Substring(0, start) + _dir + _path;
+                        }
+                    }
+                }
+            }
+
             var si = new STARTUPINFO();
             var pi = new PROCESS_INFORMATION();
 
@@ -116,7 +140,11 @@ namespace shim {
                 cmd_args += pass_args;
             }
             if(!string.IsNullOrEmpty(cmd_args)) cmd_args = " " + cmd_args;
-            var cmd = "\"" + path + "\"" + cmd_args;
+            // 手动写了就不加了
+            if(!(path[0] == '"' && path[path.Length-1] == '"') || !(path[0] == '\'' && path[path.Length-1] == '\'')) {
+                path = "\"" + path + "\"";
+            }
+            var cmd = path + cmd_args;
 
             if(!string.IsNullOrEmpty(environment)) {
                 string[] envs = environment.Split(SplitParam);
@@ -137,7 +165,6 @@ namespace shim {
             if (hasSignal) {
                 SetConsoleCtrlHandler(null, true);
             }
-
             if(!CreateProcess(null, cmd, IntPtr.Zero, IntPtr.Zero,
                 bInheritHandles: true,
                 dwCreationFlags: 0,
@@ -179,9 +206,13 @@ namespace shim {
         static Dictionary<string, string> Config(string path) {
             var config = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach(var line in File.ReadAllLines(path)) {
-                var m = Regex.Match(line, @"([^=]+)=(.*)");
-                if(m.Success) {
-                    config[m.Groups[1].Value.Trim()] = m.Groups[2].Value.Trim();
+                var i = line.IndexOf('=');
+                if(i > 0) {
+                    var k = line.Substring(0, i).Trim();
+                    var v = line.Substring(i+1).Trim();
+                    if (!string.IsNullOrEmpty(k)) {
+                        config[k] = v;
+                    }
                 }
             }
             return config;

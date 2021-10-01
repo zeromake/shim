@@ -1,3 +1,3 @@
 ﻿path = cmd
 args = /c echo %CHERE_INVOKING%
-environment = CHERE_INVOKING=0
+environment = CHERE_INVOKING=1
