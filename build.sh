@@ -8,6 +8,8 @@ rm -rf ./*.exe
 
 version=`git describe --tags 2>/dev/null`
 
+echo "version: ${version}"
+
 if [ "$1" == "ci" ]; then
     sed -i "s/private static string Version = \"develop\"/private static string Version = \"${version}\"/g" shim.cs
 fi
